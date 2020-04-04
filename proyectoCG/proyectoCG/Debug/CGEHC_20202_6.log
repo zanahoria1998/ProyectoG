@@ -1,0 +1,4 @@
+﻿  main_prac08.cpp
+c:\users\star_\onedrive\documentos\visual studio 2017\projects\cgehc_20202_6\cgehc_20202_6\main_prac08.cpp(326): warning C4244: 'argumento': conversión de 'double' a 'float'; posible pérdida de datos
+c:\users\star_\onedrive\documentos\visual studio 2017\projects\cgehc_20202_6\cgehc_20202_6\main_prac08.cpp(333): warning C4244: 'argumento': conversión de 'double' a 'float'; posible pérdida de datos
+  CGEHC_20202_6.vcxproj -> C:\Users\star_\OneDrive\Documentos\Visual Studio 2017\Projects\CGEHC_20202_6\Debug\CGEHC_20202_6.exe
