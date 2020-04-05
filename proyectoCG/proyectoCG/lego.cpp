@@ -1,9 +1,15 @@
-/*---------------------------------------------------------*/
+/*--------------------- PROYECTO: ESCENARIO LEGO ------------------------------------*/
+
+/*--------------------Integrantes: ----------------------------------------*/
+/*------------------ Amezaga Campos Salvador ---------------------------------*/
+/*------------------ Colohua Carvajal Daniela ---------------------------------*/
 
 #define STB_IMAGE_IMPLEMENTATION
 
 #include <glew.h>
 #include <glfw3.h>
+
+#include <stb_image.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -42,12 +48,54 @@ void myData(void);
 void display(Shader);
 void getResolution(void);
 void animate(void);
+void LoadTextures(void);
+unsigned int generateTextures(char*, bool);
 
 //For Keyboard
 float	movX = 0.0f,
-movY = 0.0f,
-movZ = -5.0f,
-rotX = 0.0f;
+		movY = 0.0f,
+		movZ = -5.0f,
+		rotX = 0.0f,
+		rotY = 0.0f,
+		rotZ = 0.0f,
+		i = 0;
+
+//Texture
+unsigned int t_piezaL;
+
+unsigned int generateTextures(const char* filename, bool alfa)
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	// set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// load image, create texture and generate mipmaps
+	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
+
+	unsigned char *data = stbi_load(filename, &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		if (alfa)
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		else
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		return textureID;
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+		return 100;
+	}
+
+	stbi_image_free(data);
+}
 
 
 void getResolution()
@@ -62,14 +110,21 @@ void getResolution()
 
 }
 
+void LoadTextures()
+{
+
+	t_piezaL = generateTextures("Textures/figura.jpg", 0);
+
+}
+
 void myData()
 {
 	float vertices[] = {
 		// positions          // texture coords
-		 0.5f,  0.5f, 0.0f,   4.0f, 2.0f, // top right
-		 0.5f, -0.5f, 0.0f,   4.0f, 0.0f, // bottom right
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, // bottom left
-		-0.5f,  0.5f, 0.0f,   0.0f, 2.0f  // top left 
+		 1.0f,  1.0f, 0.0f,   1.0f, 1.0f, //0
+		 1.0f,  0.0f, 0.0f,   1.0f, 0.0f, //1
+		 0.0f,  0.0f, 0.0f,   0.0f, 0.0f, //2
+		 0.0f,  1.0f, 0.0f,   0.0f, 1.0f, //3
 	};
 	unsigned int indices[] = {
 		0, 1, 3, // first triangle
@@ -119,7 +174,6 @@ void display(Shader shader)
 	view = camera.GetViewMatrix();
 
 	// pass them to the shaders
-	view = glm::rotate(view, glm::radians(rotX), glm::vec3(1.0f, 0.0f, 0.0f));
 	shader.setVec3("viewPos", camera.Position);
 	shader.setMat4("model", model);
 	shader.setMat4("view", view);
@@ -130,12 +184,17 @@ void display(Shader shader)
 	glBindVertexArray(VAO);
 	//Colocar código aquí
 
-	model = glm::scale(model, glm::vec3(20.0f, 0.2f, 20.0f));
-	shader.setMat4("model", model);
-	shader.setVec3("aColor", 1.0f, 1.0f, 0.0f);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); //Para poder ver la transparencia
-	glBindVertexArray(0);
-
+	for (i = 0; i < 5.8; i = i + 0.2) {
+		for (float j = 0; j < 5; j++) {
+			model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+			model = glm::translate(model, glm::vec3(j, i, 0.0f));
+			model = glm::scale(model, glm::vec3(1.0f, 0.2f, 1.0f));
+			shader.setMat4("model", model);
+			shader.setVec3("aColor", 1.0f, 1.0f, 1.0f);
+			glBindTexture(GL_TEXTURE_2D, t_piezaL);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		}
+	}
 }
 
 int main()
@@ -177,11 +236,12 @@ int main()
 
 	//Mis funciones
 	//Datos a utilizar
+	LoadTextures();
 	myData();
 
 	glEnable(GL_DEPTH_TEST);
 
-	Shader projectionShader("shaders/shader_projection.vs", "shaders/shader_projection.fs");
+	Shader projectionShader("shaders/shader_texture_color.vs", "shaders/shader_texture_color.fs");
 
 	// render loop
 	// While the windows is not closed
